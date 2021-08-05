@@ -17,12 +17,8 @@ Options:
   --moored      Moored (anchored) mine.
   --drifting    Drifting mine.
 """
-import kista
-import docopt
+import kista, docopt
 arguments = docopt.docopt(__doc__)
-#print(args)
-#print(args)
-#print(args)
 if arguments['deploy']:
     name = arguments['<contract_name>']
     args = arguments['<args>']
@@ -30,6 +26,14 @@ if arguments['deploy']:
     w3 = kista.w3_connect()
 
     print("DEPLOY", name, args, w3.isConnected())
+
+    if not w3.isConnected():
+        print("no connection")
+        raise exit(1)
+
+    x = force_contract_address(name, *args)
+    print("X", x)
+    
 else:
     print("dunno what to do", arguments)
     pass
