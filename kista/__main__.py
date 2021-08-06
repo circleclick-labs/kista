@@ -2,7 +2,9 @@
 Naval Fate.
 
 Usage:
-  kista.py deploy <contract_name> [<args>...]
+  kista.py deploy   <contract_name>            [<args>...]
+  kista.py call     <contract_name> <function> [<args>...]
+  kista.py transact <contract_name> <function> [<args>...]
   kista.py ship new <name>...
   kista.py ship <name> move <x> <y> [--speed=<kn>]
   kista.py ship shoot <x> <y>
@@ -18,33 +20,66 @@ Options:
   --drifting    Drifting mine.
 """
 import kista, docopt
-arguments = docopt.docopt(__doc__)
+
+def f(x):
+    try:    return int(x)
+    except: pass
+    try:    return float(x)
+    except: pass
+    return x
+
+arguments = docopt.docopt(__doc__, version=kista.version)
+
+w3 = kista.w3_connect(0)
+
+if not w3.isConnected():
+    print("no connection")
+    raise exit(1)
+
 if arguments['deploy']:
 
-    def f(x):
-        try:    return int(x)
-        except: pass
-        try:    return float(x)
-        except: pass
-        return x
-        
     name = arguments['<contract_name>']
     args = [f(x) for x in arguments['<args>']]
 
-    w3 = kista.w3_connect()
-
-    print("DEPLOY", name, args, w3.isConnected())
-
-    if not w3.isConnected():
-        print("no connection")
-        raise exit(1)
-
-    print([f(x) for x in args])
-
-    x = kista.force_load_contract_address(name, *args,
-                                          reload=1)
-    print("X", x)
+    x = kista.deploy_contractAddress(name, *args)
+    print(x)
     
+elif arguments['call']:
+
+    name = arguments['<contract_name>']
+    func = arguments['<function>']
+    args = [f(x) for x in arguments['<args>']]
+
+    x = w3.eth.contract(address=kista.load_contractAddress(name),
+                        abi=kista.load_abi(name))
+    x = kista.WrapContract(x)
+    
+    if func not in x.ras:
+        print("func not found")
+        raise exit(2)
+
+    result = x.getattr(func)(*args)
+
+    print(result)
+
+elif arguments['transact']:
+
+    name = arguments['<contract_name>']
+    func = arguments['<function>']
+    args = [f(x) for x in arguments['<args>']]
+
+    x = w3.eth.contract(address=kista.load_contractAddress(name),
+                        abi=kista.load_abi(name))
+    x = kista.WrapContract(x)
+    
+    if func not in x.was:
+        print("func not found")
+        raise exit(2)
+
+    result = x.getattr(func)(*args)
+
+    print(result)
+
 else:
     print("dunno what to do", arguments)
     pass

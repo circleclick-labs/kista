@@ -1,7 +1,6 @@
 SOLC=solc -oout --abi --bin --overwrite --allow-paths=.
 all:
 	$(SOLC) contracts/*.sol
-	tree -s .
 bashr: all
 	docker exec -it -w /root/src t. bash -l
 run:
@@ -13,7 +12,6 @@ run:
 clean:
 	rm -fr out ?.p?? *.log
 	find . -name __pycache__ | xargs rm -r
-	tree .
 dclean:
 	docker rm -f t.
 drealclean:

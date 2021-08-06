@@ -14,4 +14,8 @@ contract Test1 {
     function add2(uint x)pure public returns(uint){
 	return Utils.add2(x);
     }
+
+    function sets(string memory s_) public{
+	s = s_;
+    }
 }
