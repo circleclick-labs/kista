@@ -7,4 +7,10 @@ setup(name='kista',
       author_email='jmward+python@gmail.com',
       license='MIT',
       packages=['kista'],
-      zip_safe=False)
+      install_requires=["web3","docopt"],
+      classifiers=[
+          "Programming Language :: Python :: 3",
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: OS Independent",
+      ],
+      zip_safe=True)
