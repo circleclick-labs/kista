@@ -1,8 +1,8 @@
 """
-# kista - utilites for coins and whatnot, mostly ETH.
+utilites for coins and whatnot, mostly ETH.
 
-    kista is old norse for "box", because calling this 
-    package "misc" or "util" seemed afraught with namespace collisions.
+kista is old norse for "box", because calling this 
+package "misc" or "util" seemed afraught with namespace collisions.
 """
 import os, sys, json
 
@@ -22,7 +22,6 @@ def w3_connect(default_account):
 def wait_for_tx(tx_hash):
     return w3.eth.wait_for_transaction_receipt(tx_hash)
 
-"""
 def send(tx, pk=None, wait=False, verbose=False):
     if pk:
         signed_tx = w3.eth.account.sign_transaction(tx, pk) if pk else tx
@@ -41,7 +40,6 @@ def send(tx, pk=None, wait=False, verbose=False):
             pprint(d)
             pass
         return tx_receipt
-"""
 
 def load_abi(name):
     return json.load(open(f'out/{name}.abi'))
