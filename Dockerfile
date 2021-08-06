@@ -12,6 +12,7 @@ RUN ln  -s  ${NODE} node
 RUN cd bin ; ln -s ../node/bin/* .
 RUN npm install -g ganache-cli
 RUN cd bin ; ln -s ../node/bin/ganache-cli .
-#RUN apt-get -y install python3-pip python3.9-dev
+RUN apt-get -y install python3-pip
 RUN python3 -m pip install web3 docopt
+WORKDIR /root/src
 EXPOSE 8545

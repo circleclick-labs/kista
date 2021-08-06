@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='kista',
-      version='1.0.0',
+      version='1.1.0',
       description='miscellaneous stuff, old norse for bag',
       url='https://github.com/circleclick-labs/kista.git',
       author='Joel Ward',
