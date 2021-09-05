@@ -1,18 +1,21 @@
+from pathlib import Path
 from setuptools import setup
-from kista import __doc__, __name__, version
-def requirements(fn='requirements.txt'):
-    return [x.strip() for x in open(fn).readlines() if x!='\n']
+from kista import __name__, version
+requirements=[x.strip()for x in open('requirements.txt').readlines()if x!='\n']
+long_description=(Path(__file__).parent / "README.md").read_text()
+entry_points=dict(console_scripts=[f'{__name__}={__name__}.__main__'])
 setup(name=__name__,
       version=version,
       description='miscellaneous stuff, old norse for bag',
-      long_description=__doc__,
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       url='https://github.com/circleclick-labs/'+__name__,
       author='Joel Ward',
       author_email='jmward+python@gmail.com',
       license='MIT',
       packages=[__name__],
-      entry_points = dict(console_scripts=[f'{__name__}={__name__}.__main__']),
-      install_requires=requirements(),
+      entry_points=entry_points,
+      install_requires=requirements,
       classifiers=[
           "Programming Language :: Python :: 3",
           "License :: OSI Approved :: MIT License",
