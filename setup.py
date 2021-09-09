@@ -4,7 +4,7 @@ from kista import __name__, version
 #requirements=[x.strip()for x in open('requirements.txt').readlines()if x!='\n']
 #requirements=(Path(__file__).parent / "requirements.txt").read_text()
 long_description=(Path(__file__).parent / "README.md").read_text()
-entry_points=dict(console_scripts=[f'{__name__}={__name__}.main'])
+entry_points=dict(console_scripts=[f'{__name__}={__name__}.main:hello'])
 setup(name=__name__,
       version=version,
       description='miscellaneous stuff, old norse for bag',
