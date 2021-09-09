@@ -76,3 +76,7 @@ elif arguments['transact']:
 else:
     print("dunno what to do", arguments)
     pass
+
+def hello():
+    print("HELLO")
+    
