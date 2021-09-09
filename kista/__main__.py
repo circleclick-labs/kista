@@ -1,5 +1,5 @@
 """
-Naval Fate.
+xNaval Fate.
 
 Usage:
   kista.py deploy   <contract_name>            [<args>...]
@@ -12,6 +12,10 @@ Options:
   -h --help     Show this screen.
   --version     Show version.
 """
+from main import hello
+hello()
+exit()
+
 import kista, docopt
 
 def f(x):
