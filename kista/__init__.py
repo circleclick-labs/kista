@@ -8,7 +8,7 @@ import os, sys, json
 
 w3 = None
 
-version = '1.1.13'
+version = '1.1.14'
 
 def w3_connect(default_account):
     global w3

@@ -21,9 +21,7 @@ def f(x):
     except: pass
     return x
 
-def hello():
-    print("HELLO", sys.argv)
-
+def main():
     arguments = docopt.docopt(__doc__, version=kista.version)
 
     w3 = kista.w3_connect(0)
