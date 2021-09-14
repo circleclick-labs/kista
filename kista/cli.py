@@ -1,5 +1,7 @@
 """
-Naval Fate.
+High level python EVM interface
+
+Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
   kista.py deploy   <contract_name>            [<args>...]
@@ -77,4 +79,3 @@ def main():
     else:
         print("dunno what to do", arguments)
         pass
-

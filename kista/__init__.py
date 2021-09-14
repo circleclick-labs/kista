@@ -8,7 +8,7 @@ import os, sys, json
 
 w3 = None
 
-version = '1.1.14'
+version = '1.2.0'
 
 def w3_connect(default_account):
     global w3
@@ -52,6 +52,18 @@ def load_contractAddress(name):
 
 def save_contractAddress(name, contractAddress):
     return           open(f'out/{name}.cta','w').write(contractAddress)
+
+def load_contract(name, address=None):
+    if address is None:
+        address = load_contractAddress(name)
+        pass
+    abi        = load_abi(name)
+    contract   = w3.eth.contract(abi=abi, address=address)
+    return contract
+
+def load_wrapped_contract(name, address=None):
+    contract = load_contract_raw(name, address)
+    return  WrapContract(contract)
 
 def deploy_contractAddress(name, *args):
     abi        = load_abi(name)
