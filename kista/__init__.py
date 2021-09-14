@@ -8,7 +8,7 @@ import os, sys, json
 
 w3 = None
 
-version = '1.2.0'
+version = '1.2.1'
 
 def w3_connect(default_account):
     global w3
@@ -62,7 +62,7 @@ def load_contract(name, address=None):
     return contract
 
 def load_wrapped_contract(name, address=None):
-    contract = load_contract_raw(name, address)
+    contract = load_contract(name, address)
     return  WrapContract(contract)
 
 def deploy_contractAddress(name, *args):
