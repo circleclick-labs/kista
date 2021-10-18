@@ -6,9 +6,7 @@ package "misc" or "util" seemed afraught with namespace collisions.
 """
 import os, sys, json
 
-w3 = None
-
-private, public = None
+w3, private, public = None, None, None
 
 def set_private(x):
     global private
@@ -88,7 +86,7 @@ def old_deploy_contractAddress(name, *args):
     return contractAddress
 
 def deploy_contractAddress(name, *args):
-    if private = None:
+    if private is None:
         return old_deploy_contractAddress(name, *args)
     abi        = load_abi(name)
     bytecode   = load_bytecode(name)
