@@ -18,7 +18,7 @@ def set_public(x):
     public = x
     pass
 
-version = '1.3.0'
+version = '1.3.1'
 
 def w3_connect(default_account):
     global w3
@@ -91,8 +91,8 @@ def deploy_contractAddress(name, *args):
     abi        = load_abi(name)
     bytecode   = load_bytecode(name)
     contract   = w3.eth.contract(abi=abi, bytecode=bytecode)
-    txn        = contract.constructor(*args).buildTransaction(
-        nonce = w3.eth.get_transaction_count(public))
+    txn        = contract.constructor(*args).buildTransaction(dict(
+        nonce = w3.eth.get_transaction_count(public)))
     signed_txn = w3.eth.account.sign_transaction(txn, private)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     tx_receipt = wait_for_tx(tx_hash)
