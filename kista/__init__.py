@@ -18,7 +18,7 @@ def set_public(x):
     public = x
     pass
 
-version = '1.3.1'
+version = '1.3.2'
 
 def w3_connect(default_account):
     global w3
