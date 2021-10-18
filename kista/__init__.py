@@ -8,7 +8,19 @@ import os, sys, json
 
 w3 = None
 
-version = '1.2.1'
+private, public = None
+
+def set_private(x):
+    global private
+    private = x
+    pass
+
+def set_public(x):
+    global public
+    public = x
+    pass
+
+version = '1.3.0'
 
 def w3_connect(default_account):
     global w3
@@ -65,11 +77,26 @@ def load_wrapped_contract(name, address=None):
     contract = load_contract(name, address)
     return  WrapContract(contract)
 
-def deploy_contractAddress(name, *args):
+def old_deploy_contractAddress(name, *args):
     abi        = load_abi(name)
     bytecode   = load_bytecode(name)
     contract   = w3.eth.contract(abi=abi, bytecode=bytecode)
     tx_hash    = contract.constructor(*args).transact()
+    tx_receipt = wait_for_tx(tx_hash)
+    contractAddress = tx_receipt.contractAddress
+    save_contractAddress(name, contractAddress)
+    return contractAddress
+
+def deploy_contractAddress(name, *args):
+    if private = None:
+        return old_deploy_contractAddress(name, *args)
+    abi        = load_abi(name)
+    bytecode   = load_bytecode(name)
+    contract   = w3.eth.contract(abi=abi, bytecode=bytecode)
+    txn        = contract.constructor(*args).buildTransaction(
+        nonce = w3.eth.get_transaction_count(public))
+    signed_txn = w3.eth.account.sign_transaction(txn, private)
+    tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     tx_receipt = wait_for_tx(tx_hash)
     contractAddress = tx_receipt.contractAddress
     save_contractAddress(name, contractAddress)
@@ -93,10 +120,22 @@ class WrapMixin:
 def get_func(contract, funcname):
     return contract.functions.__dict__[funcname]
 
-def wcall(contract, funcname, *args, _from=None, **kw):
+def old_wcall(contract, funcname, *args, _from=None, **kw):
     if _from: kw['from'] = _from
     func = get_func(contract, funcname)
     tx_hash = func(*args).transact(kw)
+    tx_receipt = wait_for_tx(tx_hash)
+    return tx_receipt
+
+def wcall(contract, funcname, *args, _from=None, **kw):
+    if private is None:
+        return old_wcall(contract, funcname, *args, _from, **kw)
+    if _from: kw['from'] = _from
+    func = get_func(contract, funcname)
+    kw['nonce'] = w3.eth.get_transaction_count(public)
+    txn = func(*args).buildTransaction(kw)
+    signed_txn = w3.eth.account.sign_transaction(txn, private)
+    tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     tx_receipt = wait_for_tx(tx_hash)
     return tx_receipt
 
