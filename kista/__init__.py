@@ -6,7 +6,15 @@ package "misc" or "util" seemed afraught with namespace collisions.
 """
 import os, sys, json
 
+version = '1.3.3'
+
 w3, private, public = None, None, None
+gasfactor = None
+
+def set_gasfactor(x):
+    global gasfactor
+    gasfactor = x
+    pass
 
 def set_private(x):
     global private
@@ -17,8 +25,6 @@ def set_public(x):
     global public
     public = x
     pass
-
-version = '1.3.2'
 
 def w3_connect(default_account):
     global w3
@@ -85,17 +91,21 @@ def old_deploy_contractAddress(name, *args):
     save_contractAddress(name, contractAddress)
     return contractAddress
 
-def deploy_contractAddress(name, *args):
+def deploy_contractAddress(name, *args, **kw):
     if private is None:
         return old_deploy_contractAddress(name, *args)
-    abi        = load_abi(name)
-    bytecode   = load_bytecode(name)
-    contract   = w3.eth.contract(abi=abi, bytecode=bytecode)
-    txn        = contract.constructor(*args).buildTransaction(dict(
-        nonce = w3.eth.get_transaction_count(public)))
-    signed_txn = w3.eth.account.sign_transaction(txn, private)
-    tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-    tx_receipt = wait_for_tx(tx_hash)
+    abi         = load_abi(name)
+    bytecode    = load_bytecode(name)
+    contract    = w3.eth.contract(abi=abi, bytecode=bytecode)
+    if gasfactor is not None:
+        gas = contract.constructor(*args).estimateGas()
+        kw['gas']   = int(gasfactor * gas)
+        pass
+    kw['nonce'] = w3.eth.get_transaction_count(public)
+    txn         = contract.constructor(*args).buildTransaction(kw)
+    signed_txn  = w3.eth.account.sign_transaction(txn, private)
+    tx_hash     = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+    tx_receipt  = wait_for_tx(tx_hash)
     contractAddress = tx_receipt.contractAddress
     save_contractAddress(name, contractAddress)
     return contractAddress
@@ -130,6 +140,10 @@ def wcall(contract, funcname, *args, _from=None, **kw):
         return old_wcall(contract, funcname, *args, _from, **kw)
     if _from: kw['from'] = _from
     func = get_func(contract, funcname)
+    if gasfactor is not None:
+        gas = func(*args).estimateGas()
+        kw['gas']   = int(gasfactor * gas)
+        pass
     kw['nonce'] = w3.eth.get_transaction_count(public)
     txn = func(*args).buildTransaction(kw)
     signed_txn = w3.eth.account.sign_transaction(txn, private)
