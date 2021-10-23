@@ -1,6 +1,7 @@
 SOLC=solc -oout --abi --bin --overwrite --allow-paths=.
 all:
 	$(SOLC) contracts/*.sol
+	./env.sh python3 test/test.py
 bashr: all
 	docker exec -it -w /root/src t. bash -l
 run:

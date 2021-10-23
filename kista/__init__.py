@@ -6,7 +6,7 @@ package "misc" or "util" seemed afraught with namespace collisions.
 """
 import os, sys, json
 
-version = '1.3.3'
+version = '1.4.0'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -23,6 +23,7 @@ def set_private(x):
 
 def set_public(x):
     global public
+    set_default_address(x)
     public = x
     pass
 
@@ -117,7 +118,9 @@ def set_default_address(default_account):
     if type(default_account) == int:
         default_account = w3.eth.accounts[default_account]
         pass
+    print("ASDFSDF")
     w3.eth.default_account = default_account
+    print("ASDFSDF")
     return default_account
 
 class WrapMixin:
@@ -138,7 +141,8 @@ def old_wcall(contract, funcname, *args, _from=None, **kw):
 def wcall(contract, funcname, *args, _from=None, **kw):
     if private is None:
         return old_wcall(contract, funcname, *args, _from, **kw)
-    if _from: kw['from'] = _from
+    kw['from'] = _from if _from is not None else public
+    kw['from'] = public
     func = get_func(contract, funcname)
     if gasfactor is not None:
         gas = func(*args).estimateGas()
@@ -146,6 +150,7 @@ def wcall(contract, funcname, *args, _from=None, **kw):
         pass
     kw['nonce'] = w3.eth.get_transaction_count(public)
     txn = func(*args).buildTransaction(kw)
+    print("TXN", txn)
     signed_txn = w3.eth.account.sign_transaction(txn, private)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     tx_receipt = wait_for_tx(tx_hash)
