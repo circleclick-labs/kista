@@ -3,7 +3,8 @@ KISTA=python3 -um kista
 all:
 	$(SOLC) contracts/*.sol
 	$(KISTA) deploy Test2 hello\ again
-	./env.sh python3 test/test.py
+	$(KISTA) call   Test2 getMsgSender
+	python3 test/test.py
 bashr: all
 	docker exec -it -w /root/src t. bash -l
 run:

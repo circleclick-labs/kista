@@ -26,7 +26,7 @@ def f(x):
 def main():
     arguments = docopt.docopt(__doc__, version=kista.version)
 
-    w3 = kista.w3_connect(0)
+    w3 = kista.w3_connect(None)
 
     if not w3.isConnected():
         print("no connection")

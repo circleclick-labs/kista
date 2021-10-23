@@ -6,7 +6,7 @@ package "misc" or "util" seemed afraught with namespace collisions.
 """
 import os, sys, json
 
-version = '1.4.3'
+version = '1.4.4'
 
 w3, private, public = None, None, None
 gasfactor = None
