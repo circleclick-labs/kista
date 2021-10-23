@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import os, sys, json, time, datetime as dt, kista
 
-kista.w3_connect(None)
-kista.set_gasfactor(1.1)
-kista.set_public( os.getenv('PUBLIC'))
-kista.set_private(os.getenv('PRIVATE'))
+kista.w3_connect(None, 1.1)
+#kista.set_gasfactor(1.1)
+#kista.set_public( os.getenv('PUBLIC'))
+#kista.set_private(os.getenv('PRIVATE'))
 
 from kista import *
 

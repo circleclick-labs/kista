@@ -6,7 +6,7 @@ package "misc" or "util" seemed afraught with namespace collisions.
 """
 import os, sys, json
 
-version = '1.4.1'
+version = '1.4.2'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -27,13 +27,17 @@ def set_public(x):
     public = x
     pass
 
-def w3_connect(default_account):
+def w3_connect(default_account, gasfactor=None):
     global w3
     from web3.auto import w3 as _w3
     w3 = _w3
     if default_account is not None:
         w3.eth.default_account = w3.eth.accounts[default_account]
+    else:
+        set_public (os.getenv('PUBLIC'))
+        set_private(os.getenv('PRIVATE',''))
         pass
+    set_gasfactor(gasfactor or int(os.getenv('GASFACTOR', '1')))
     return w3
 
 def wait_for_tx(tx_hash):
@@ -139,8 +143,8 @@ def old_wcall(contract, funcname, *args, _from=None, **kw):
 def wcall(contract, funcname, *args, _from=None, **kw):
     if private is None:
         return old_wcall(contract, funcname, *args, _from, **kw)
-    kw['from'] = _from if _from is not None else public
-    kw['from'] = public
+    kw['from'] = _from or public
+    #kw['from'] = public
     func = get_func(contract, funcname)
     if gasfactor is not None:
         gas = func(*args).estimateGas()

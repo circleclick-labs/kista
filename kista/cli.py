@@ -36,7 +36,6 @@ def main():
 
         name = arguments['<contract_name>']
         args = [f(x) for x in arguments['<args>']]
-
         x = kista.deploy_contractAddress(name, *args)
         print(x)
     

@@ -1,2 +1,1 @@
-from .cli import main
-exit(main())
+from .cli import main ; exit(main())
