@@ -17,6 +17,18 @@ Options:
 import sys, kista, docopt
 
 def f(x):
+    if x == 'true':
+        return True
+    if x == 'false':
+        return False
+    if x == 'null':
+        return None
+    if x.startswith('~'):
+        try:    return -int(x[1:])
+        except: pass
+        try:    return -float(x[1:])
+        except: pass
+        pass
     try:    return int(x)
     except: pass
     try:    return float(x)
