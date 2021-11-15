@@ -6,13 +6,14 @@ Old Norse for 'bag' (since it's a bag of tricks)
 Usage:
   kista.py ( deploy   | d ) [ -q ] <contract_name>            [<args>...]
   kista.py ( call     | c ) [ -q ] <contract_name> <function> [<args>...]
-  kista.py ( transact | t ) [ -q ] <contract_name> <function> [<args>...]
+  kista.py ( transact | t ) [ -v ] <contract_name> <function> [<args>...]
   kista.py -h | --help
   kista.py --version
 
 Options:
   -h --help     Show this screen.
   -q            quiet mode
+  -v            verbose mode
   --version     Show version.
 """
 import sys, kista, docopt
@@ -90,7 +91,7 @@ def main():
 
         result = x.getattr(func)(*args)
 
-        if not quiet: print(result)
+        if arguments['-v']: print(result)
         pass
 
     else:
