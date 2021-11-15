@@ -4,14 +4,15 @@ High level python EVM interface
 Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
-  kista.py deploy   <contract_name>            [<args>...]
-  kista.py call     <contract_name> <function> [<args>...]
-  kista.py transact <contract_name> <function> [<args>...]
+  kista.py ( deploy   | d ) [ -q ] <contract_name>            [<args>...]
+  kista.py ( call     | c ) [ -q ] <contract_name> <function> [<args>...]
+  kista.py ( transact | t ) [ -q ] <contract_name> <function> [<args>...]
   kista.py -h | --help
   kista.py --version
 
 Options:
   -h --help     Show this screen.
+  -q            quiet mode
   --version     Show version.
 """
 import sys, kista, docopt
@@ -40,18 +41,21 @@ def main():
 
     w3 = kista.w3_connect(None)
 
+    quiet = arguments['-q']
+
     if not w3.isConnected():
         print("no connection")
         raise exit(1)
 
-    if arguments['deploy']:
+    if arguments['deploy'] or arguments['d']:
 
         name = arguments['<contract_name>']
         args = [f(x) for x in arguments['<args>']]
         x = kista.deploy_contractAddress(name, *args)
-        print(x)
-    
-    elif arguments['call']:
+        if not quiet: print(x)
+        pass
+        
+    elif arguments['call'] or arguments['c']:
 
         name = arguments['<contract_name>']
         func = arguments['<function>']
@@ -67,9 +71,10 @@ def main():
 
         result = x.getattr(func)(*args)
 
-        print(result)
-
-    elif arguments['transact']:
+        if not quiet: print(result)
+        pass
+    
+    elif arguments['transact'] or arguments['t']:
 
         name = arguments['<contract_name>']
         func = arguments['<function>']
@@ -85,7 +90,8 @@ def main():
 
         result = x.getattr(func)(*args)
 
-        print(result)
+        if not quiet: print(result)
+        pass
 
     else:
         print("dunno what to do", arguments)

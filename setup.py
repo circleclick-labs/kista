@@ -14,6 +14,7 @@ setup(name=__name__,
       license='MIT',
       packages=[__name__],
       entry_points=entry_points,
+      scripts=['kista/k'],
       install_requires=['web3', 'docopt'],
       classifiers=[
           "Programming Language :: Python :: 3",
