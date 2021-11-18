@@ -4,11 +4,11 @@ High level python EVM interface
 Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
-  kista.py ( deploy   | d ) [ -q ] <contract_name>            [<args>...]
-  kista.py ( call     | c ) [ -q ] <contract_name> <function> [<args>...]
-  kista.py ( transact | t ) [ -v ] <contract_name> <function> [<args>...]
-  kista.py -h | --help
-  kista.py --version
+  kista ( deploy   | d ) [ -q ] <contract_name>            [<args>...]
+  kista ( call     | c ) [ -q ] <contract_name> <function> [<args>...]
+  kista ( transact | t ) [ -v ] <contract_name> <function> [<args>...]
+  kista -h | --help
+  kista --version
 
 Options:
   -h --help     Show this screen.
@@ -25,6 +25,10 @@ def f(x):
         return False
     if x == 'null':
         return None
+    if x.startswith('@@'):
+        return open(f"out/{x[2:]}.cta").read()
+    if x.startswith('@'):
+        return open(       x[1:]      ).read()
     if x.startswith('~'):
         try:    return -int(x[1:])
         except: pass

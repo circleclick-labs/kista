@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+import sys
+sys.argv.insert(1, "c")
+from kista import cli
+cli.main()
