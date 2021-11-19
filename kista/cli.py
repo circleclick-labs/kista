@@ -4,21 +4,22 @@ High level python EVM interface
 Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
-  kista ( deploy   | d ) [ -q ] <contract_name>            [<args>...]
-  kista ( call     | c ) [ -q ] <contract_name> <function> [<args>...]
-  kista ( transact | t ) [ -v ] <contract_name> <function> [<args>...]
+  kista ( d | deploy   )  [ -q ] <contract_name>            [<args>...]
+  kista ( c | call     )  [ -q ] <contract_name> <function> [<args>...]
+  kista ( t | transact )  [ -v ] <contract_name> <function> [<args>...]
+  kista ( p | pay ) <wei> [ -v ] <contract_name> <function> [<args>...]
   kista -h | --help
   kista --version
 
 Options:
+  <wei>         amount to send in wei.
   -h --help     Show this screen.
   -q            quiet mode
   -v            verbose mode
   --version     Show version.
 """
-import sys, kista, docopt
 
-def f(x):
+def _f(x):
     if x == 'true':
         return True
     if x == 'false':
@@ -26,9 +27,9 @@ def f(x):
     if x == 'null':
         return None
     if x.startswith('@@'):
-        return open(f"out/{x[2:]}.cta").read()
+        return open(f"out/{x[2:]}.cta").read().strip()
     if x.startswith('@'):
-        return open(       x[1:]      ).read()
+        return open(       x[1:]      ).read().strip()
     if x.startswith('~'):
         try:    return -int(x[1:])
         except: pass
@@ -42,6 +43,8 @@ def f(x):
     return x
 
 def main():
+    import kista, docopt
+
     arguments = docopt.docopt(__doc__, version=kista.version)
 
     w3 = kista.w3_connect(None)
@@ -55,7 +58,7 @@ def main():
     if arguments['deploy'] or arguments['d']:
 
         name = arguments['<contract_name>']
-        args = [f(x) for x in arguments['<args>']]
+        args = [_f(x) for x in arguments['<args>']]
         x = kista.deploy_contractAddress(name, *args)
         if not quiet: print(x)
         pass
@@ -64,7 +67,7 @@ def main():
 
         name = arguments['<contract_name>']
         func = arguments['<function>']
-        args = [f(x) for x in arguments['<args>']]
+        args = [_f(x) for x in arguments['<args>']]
 
         x = w3.eth.contract(address=kista.load_contractAddress(name),
                             abi=kista.load_abi(name))
@@ -83,7 +86,7 @@ def main():
 
         name = arguments['<contract_name>']
         func = arguments['<function>']
-        args = [f(x) for x in arguments['<args>']]
+        args = [_f(x) for x in arguments['<args>']]
 
         x = w3.eth.contract(address=kista.load_contractAddress(name),
                             abi=kista.load_abi(name))
@@ -93,6 +96,33 @@ def main():
             print("func not found")
             raise exit(2)
 
+        result = x.getattr(func)(*args)
+
+        if arguments['-v']: print(result)
+        pass
+
+    elif arguments['pay'] or arguments['p']:
+
+        wei  = arguments['<wei>']
+        name = arguments['<contract_name>']
+        func = arguments['<function>']
+        args = [_f(x) for x in arguments['<args>']]
+
+        x = w3.eth.contract(address=kista.load_contractAddress(name),
+                            abi=kista.load_abi(name))
+        x = kista.WrapContract(x)
+
+        if func not in x.was:
+            print("func not found")
+            raise exit(2)
+
+        print("WEI", wei)
+        print("WEI", wei)
+        print("WEI", wei)
+        print("WEI", wei)
+        print("WEI", wei)
+        print("WEI", wei)
+        
         result = x.getattr(func)(*args)
 
         if arguments['-v']: print(result)

@@ -16,6 +16,7 @@ run:
 clean:
 	rm -fr out ?.p?? *.log
 	find . -name __pycache__ | xargs rm -r
+	find . -name '*~' | xargs rm -r
 	rm -fr kista.egg-info dist build
 dclean:
 	docker rm -f t.

@@ -3,6 +3,7 @@ from setuptools import setup
 from kista import __name__, version
 long_description=(Path(__file__).parent / "README.md").read_text()
 entry_points=dict(console_scripts=[f'{__name__}={__name__}.cli:main'])
+import os.path
 setup(name=__name__,
       version=version,
       description='miscellaneous stuff, old norse for bag',
@@ -14,7 +15,8 @@ setup(name=__name__,
       license='MIT',
       packages=[__name__],
       entry_points=entry_points,
-      scripts=['kista/k'],
+      scripts=(lambda d='scripts':
+               [d+'/'+x for x in os.listdir(d)])(),
       install_requires=['web3', 'docopt'],
       classifiers=[
           "Programming Language :: Python :: 3",
