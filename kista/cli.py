@@ -29,7 +29,7 @@ def _f(x):
     if x.startswith('@@'):
         return open(f"out/{x[2:]}.cta").read().strip()
     if x.startswith('@'):
-        return open(       x[1:]      ).read().strip()
+        return _f(open(       x[1:]      ).read().strip())
     if x.startswith('~'):
         try:    return -int(x[1:])
         except: pass
