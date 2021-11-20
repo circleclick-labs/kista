@@ -1,9 +1,15 @@
 import os, sys, json
 
-version = '1.6.8'
+version = '1.7.1'
 
 w3, private, public = None, None, None
 gasfactor = None
+pay = 0
+
+def set_pay(x):
+    global pay
+    pay = x
+    pass
 
 def set_gasfactor(x):
     global gasfactor
@@ -135,6 +141,14 @@ def old_wcall(contract, funcname, *args, _from=None, **kw):
     return tx_receipt
 
 def wcall(contract, funcname, *args, _from=None, **kw):
+    #print("WVALLLLL")
+    if _from: kw['from'] = _from
+    func = get_func(contract, funcname)
+    tx_hash = func(*args).transact(kw)
+    tx_receipt = wait_for_tx(tx_hash)
+    return tx_receipt
+
+def new_wcall(contract, funcname, *args, _from=None, **kw):
     if private is None:
         return old_wcall(contract, funcname, *args, _from, **kw)
     kw['from'] = _from or public
@@ -144,7 +158,11 @@ def wcall(contract, funcname, *args, _from=None, **kw):
         gas = func(*args).estimateGas()
         kw['gas']   = int(gasfactor * gas)
         pass
+    if pay:
+        kw['value'] = int(pay)
+        pass
     kw['nonce'] = w3.eth.get_transaction_count(public)
+    print("@@@@@@ KW", kw)
     txn = func(*args).buildTransaction(kw)
     signed_txn = w3.eth.account.sign_transaction(txn, private)
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
@@ -189,6 +207,7 @@ class WrapContract(WrapMixin):
     def get_func_names_from_contract(_):
         r, w = [], []
         for f in _.contract.functions._functions:
+            #print("SM", f['stateMutability'])
             if f['stateMutability'] in ['view','pure']:
                 r.append(f['name'])
             else:

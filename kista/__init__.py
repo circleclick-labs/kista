@@ -6,3 +6,4 @@ package "misc" or "util" seemed afraught with namespace collisions.
 """
 from .utilities import *
 from . import cli
+print("kista init")

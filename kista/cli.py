@@ -43,12 +43,22 @@ def _f(x):
     return x
 
 def main():
-    import kista, docopt
+    import os, eth_account, kista, docopt
 
     arguments = docopt.docopt(__doc__, version=kista.version)
 
     w3 = kista.w3_connect(None)
 
+    if 1:
+        from web3.middleware import construct_sign_and_send_raw_middleware
+        from eth_account import Account
+        PRIVATE = os.getenv('PRIVATE')
+        acct = eth_account.Account.from_key(PRIVATE)
+        #acct = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+        w3.middleware_onion.add(construct_sign_and_send_raw_middleware(acct))
+        w3.eth.default_account = acct.address
+        pass
+    
     quiet = arguments['-q']
 
     if not w3.isConnected():
@@ -79,7 +89,9 @@ def main():
 
         result = x.getattr(func)(*args)
 
-        if not quiet: print(result)
+        import json
+        
+        if not quiet: print(json.dumps(result))
         pass
     
     elif arguments['transact'] or arguments['t']:
@@ -116,14 +128,11 @@ def main():
             print("func not found")
             raise exit(2)
 
-        print("WEI", wei)
-        print("WEI", wei)
-        print("WEI", wei)
-        print("WEI", wei)
-        print("WEI", wei)
-        print("WEI", wei)
-        
-        result = x.getattr(func)(*args)
+        unit = 'wei'
+        #result = x.getattr(func)(*args, value=int(wei))
+        #result = x.getattr(func)(*args, value=web3.toWei(wei, 'gwei'))
+        #print(repr(w3.toWei(wei, unit)))
+        result = x.getattr(func)(*args, value=w3.toWei(wei, unit))
 
         if arguments['-v']: print(result)
         pass

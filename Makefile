@@ -1,10 +1,21 @@
 SOLC=solc -oout --abi --bin --overwrite --allow-paths=.
 KISTA=python3 -um kista
+#eall:
+#	python3 xx.py
 all:
 	$(SOLC) contracts/*.sol
-	$(KISTA) deploy Test2 hello\ again
-	$(KISTA) call   Test2 getMsgSender
-	python3 test/test.py
+	scripts/deploy Test2 hello\ again
+	scripts/kt     Test2 dontPayMe 199
+	scripts/pay 99 Test2 payMe 99
+	scripts/call   Test2 vals
+#	python3 xx.py
+qqqqqq:
+	scripts/call   Test2 getMsgSender
+	scripts/call   Test2 vals
+	scripts/pay 100000000000000 Test2 payMe 25000000
+	scripts/call   Test2 vals
+	python3 xx.py
+#	python3 test/test.py
 bashr: all
 	docker exec -it -w /root/src t. bash -l
 run:
