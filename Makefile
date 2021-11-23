@@ -24,6 +24,11 @@ run:
 		-v `pwd`":/root/src" -w/root/src \
 		-d --name t. -it t bash -c \
 		'ganache-cli -h0>g.log'
+irun:
+	docker build . -t t
+	docker run  --network=bridge -p8545:8545 \
+		-v `pwd`":/root/src" -w/root/src \
+		--rm --name t. -it t bash -l
 clean:
 	rm -fr out ?.p?? *.log
 	find . -name __pycache__ | xargs rm -r
