@@ -1,6 +1,6 @@
 import os, sys, json
 
-version = '1.7.2'
+version = '1.7.3'
 
 w3, private, public = None, None, None
 gasfactor = None

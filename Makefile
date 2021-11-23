@@ -1,7 +1,5 @@
 SOLC=solc -oout --abi --bin --overwrite --allow-paths=.
-KISTA=python3 -um kista
-#eall:
-#	python3 xx.py
+PYTHONPATH=.
 all:
 	$(SOLC) contracts/*.sol
 	scripts/deploy Test2 hello\ again
