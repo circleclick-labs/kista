@@ -26,7 +26,7 @@ run:
 		'ganache-cli -h0>g.log'
 irun:
 	docker build . -t t
-	docker run  --network=bridge -p8545:8545 \
+	docker run  \
 		-v `pwd`":/root/src" -w/root/src \
 		--rm --name t. -it t bash -l
 clean:
