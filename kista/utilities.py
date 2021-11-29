@@ -1,6 +1,6 @@
-import os, sys, json
+import os, sys, json, time
 
-version = '1.8.5'
+version = '1.8.6'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -40,7 +40,7 @@ def w3_connect(default_account, gasfactor=None):
     set_gasfactor(gasfactor or int(os.getenv('GASFACTOR', '1')))
     return w3
 
-def add_onion():
+def add_onion(w3):
     from web3.middleware import construct_sign_and_send_raw_middleware
     from eth_account import Account
     #PRIVATE = os.getenv('PRIVATE')
@@ -97,6 +97,26 @@ def load_wrapped_contract(name, address=None):
     contract = load_contract(name, address)
     return  WrapContract(contract)
 
+def deploy_contract(name, *args):
+    abi        = load_abi(name)
+    bytecode   = load_bytecode(name)
+    contract   = w3.eth.contract(abi=abi, bytecode=bytecode)
+    while 1:
+        try:
+            tx_hash    = contract.constructor(*args).transact()
+            tx_receipt = wait_for_tx(tx_hash)
+            break
+        except ValueError as e:
+            if e.args[0]['code'] == -32010:
+                print("retry...")
+                time.sleep(0.1)
+                continue
+            break
+        pass
+    contractAddress = tx_receipt.contractAddress
+    save_contractAddress(name, contractAddress)
+    return contractAddress
+    
 def old_deploy_contractAddress(name, *args):
     abi        = load_abi(name)
     bytecode   = load_bytecode(name)
@@ -152,18 +172,26 @@ def old_wcall(contract, funcname, *args, _from=None, **kw):
     return tx_receipt
 
 def wcall(contract, funcname, *args, _from=None, **kw):
-    #print("WVALLLLL")
     if _from: kw['from'] = _from
     func = get_func(contract, funcname)
-    tx_hash = func(*args).transact(kw)
-    tx_receipt = wait_for_tx(tx_hash)
+    while 1:
+        try:
+            tx_hash = func(*args).transact(kw)
+            tx_receipt = wait_for_tx(tx_hash)
+            break
+        except ValueError as e:
+            if e.args[0]['code'] == -32010:
+                print("retry...")
+                time.sleep(0.1)
+                continue
+            break
+        pass
     return tx_receipt
 
 def new_wcall(contract, funcname, *args, _from=None, **kw):
     if private is None:
         return old_wcall(contract, funcname, *args, _from, **kw)
     kw['from'] = _from or public
-    #kw['from'] = public
     func = get_func(contract, funcname)
     if gasfactor is not None:
         gas = func(*args).estimateGas()
