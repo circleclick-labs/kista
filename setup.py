@@ -17,7 +17,7 @@ setup(name=__name__,
       entry_points=entry_points,
       scripts=(lambda d='scripts':
                [d+'/'+x for x in os.listdir(d)])(),
-      install_requires=['web3', 'docopt'],
+      install_requires=['web3==5.24', 'docopt'],
       classifiers=[
           "Programming Language :: Python :: 3",
           "License :: OSI Approved :: MIT License",

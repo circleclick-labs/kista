@@ -1,6 +1,6 @@
 import os, sys, json
 
-version = '1.8.3'
+version = '1.8.4'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -39,6 +39,17 @@ def w3_connect(default_account, gasfactor=None):
         pass
     set_gasfactor(gasfactor or int(os.getenv('GASFACTOR', '1')))
     return w3
+
+def add_onion():
+    from web3.middleware import construct_sign_and_send_raw_middleware
+    from eth_account import Account
+    #PRIVATE = os.getenv('PRIVATE')
+    #acct = eth_account.Account.from_key(PRIVATE)
+    acct = eth_account.Account.from_key(private)
+    #acct = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    w3.middleware_onion.add(construct_sign_and_send_raw_middleware(acct))
+    #w3.eth.default_account = acct.address
+    pass
 
 def wait_for_tx(tx_hash):
     return w3.eth.wait_for_transaction_receipt(tx_hash)
