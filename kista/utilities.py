@@ -1,6 +1,6 @@
 import os, sys, json, time
 
-version = '1.8.6'
+version = '1.8.7'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -43,9 +43,7 @@ def w3_connect(default_account, gasfactor=None):
 def add_onion(w3):
     from web3.middleware import construct_sign_and_send_raw_middleware
     from eth_account import Account
-    #PRIVATE = os.getenv('PRIVATE')
-    #acct = eth_account.Account.from_key(PRIVATE)
-    acct = eth_account.Account.from_key(private)
+    acct = Account.from_key(private)
     #acct = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
     w3.middleware_onion.add(construct_sign_and_send_raw_middleware(acct))
     #w3.eth.default_account = acct.address
