@@ -68,8 +68,11 @@ def main():
     if arguments['deploy'] or arguments['d']:
 
         name = arguments['<contract_name>']
+        print("!!!")
         args = [_f(x) for x in arguments['<args>']]
-        x = kista.deploy_contractAddress(name, *args)
+        print("!!!")
+        x = kista.old_deploy_contractAddress(name, *args)
+        print("!!!")
         if not quiet: print(x)
         pass
         

@@ -1,6 +1,6 @@
 import os, sys, json, time
 
-version = '1.8.7'
+version = '1.8.8'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -103,17 +103,17 @@ def deploy_contract(name, *args):
         try:
             tx_hash    = contract.constructor(*args).transact()
             tx_receipt = wait_for_tx(tx_hash)
-            break
+            contractAddress = tx_receipt.contractAddress
+            save_contractAddress(name, contractAddress)
+            return contractAddress
         except ValueError as e:
-            if e.args[0]['code'] == -32010:
-                print("retry...")
-                time.sleep(0.1)
-                continue
-            break
+            if e.args[0]['code'] != -32010:
+                raise
+            print("retry...")
+            time.sleep(0.1)
+            continue
         pass
-    contractAddress = tx_receipt.contractAddress
-    save_contractAddress(name, contractAddress)
-    return contractAddress
+    return
     
 def old_deploy_contractAddress(name, *args):
     abi        = load_abi(name)
@@ -175,16 +175,15 @@ def wcall(contract, funcname, *args, _from=None, **kw):
     while 1:
         try:
             tx_hash = func(*args).transact(kw)
-            tx_receipt = wait_for_tx(tx_hash)
-            break
+            return wait_for_tx(tx_hash)
         except ValueError as e:
-            if e.args[0]['code'] == -32010:
-                print("retry...")
-                time.sleep(0.1)
-                continue
-            break
+            if e.args[0]['code'] != -32010:
+                raise
+            print("retry...")
+            time.sleep(0.1)
+            continue
         pass
-    return tx_receipt
+    return
 
 def new_wcall(contract, funcname, *args, _from=None, **kw):
     if private is None:
