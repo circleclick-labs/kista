@@ -4,15 +4,16 @@ High level python EVM interface
 Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
-  kista ( d | deploy   )  [ -q ] <contract_name>            [<args>...]
-  kista ( c | call     )  [ -q ] <contract_name> <function> [<args>...]
-  kista ( t | transact )  [ -v ] <contract_name> <function> [<args>...]
-  kista ( p | pay ) <wei> [ -v ] <contract_name> <function> [<args>...]
+  kista ( d | deploy   )  [ -q ] [ -j ] [ --v <value> [<unit>]] <contract_name> -as <name> [<args>...]
+  kista ( t | transact )  [ -v ] [ -j ] [ --v <value> [<unit>]] <contract_name> <function> [<args>...]
+  kista ( c | call     )  [ -q ] [ -j ]                         <contract_name> <function> [<args>...]
+  kista ( a | address  )  [ -q ] [ -j ]                         <contract_name> [ <new_address> ]
   kista -h | --help
   kista --version
 
 Options:
   <wei>         amount to send in wei.
+  <unit>        units to send (default: wei)
   -h --help     Show this screen.
   -q            quiet mode
   -v            verbose mode
@@ -42,104 +43,110 @@ def _f(x):
     except: pass
     return x
 
-def main():
-    import os, eth_account, kista, docopt
-
-    arguments = docopt.docopt(__doc__, version=kista.version)
-
-    w3 = kista.w3_connect(None)
-
-    if 1:
-        from web3.middleware import construct_sign_and_send_raw_middleware
-        from eth_account import Account
-        PRIVATE = os.getenv('PRIVATE')
-        acct = eth_account.Account.from_key(PRIVATE)
-        #acct = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
-        w3.middleware_onion.add(construct_sign_and_send_raw_middleware(acct))
-        w3.eth.default_account = acct.address
+def println(result, _json):
+    if _json:
+        print(json.dumps(result))
+    else:
+        print(result)
         pass
-    
-    quiet = arguments['-q']
+    pass
 
+def main():
+    import os, eth_account, kista, docopt, json, functools
+
+    A = docopt.docopt(__doc__, version=kista.version)
+
+    nname = A['<name>']
+    vbose = A['-v']
+    quiet = A['-q']
+    _json = A['-j']
+    name  = A['<contract_name>']
+    value = A['<value>']
+    unit  = A['<unit>'] or 'wei'
+    wei   = A['<wei>']
+    func  = A['<function>']
+
+    w3 = kista.add_onion(kista.w3_connect(None))
+    
     if not w3.isConnected():
         print("no connection")
         raise exit(1)
 
-    if arguments['deploy'] or arguments['d']:
+    args = lambda: [_f(x) for x in A['<args>']]
 
-        name = arguments['<contract_name>']
-        print("!!!")
-        args = [_f(x) for x in arguments['<args>']]
-        print("!!!")
-        x = kista.old_deploy_contractAddress(name, *args)
-        print("!!!")
-        if not quiet: print(x)
+    if A['deploy'] or A['d']:
+
+        if nname:
+            kista.link_contract(name, nname)
+            nname = name
+            pass
+
+        f = functools.partial(kista.deploy_contract(name))
+
+        if value:
+            result = f(*args(), value=w3.toWei(value, unit))
+            #result = kista.deploy_contract(name, *args(), value=w3.toWei(value, unit))
+        else:
+            result = f(*args())
+            #result = kista.deploy_contract(name, *args())
+            pass
+        
+        if not quiet:
+            println(result, _json)
+            pass
         pass
         
-    elif arguments['call'] or arguments['c']:
+    elif A['transact'] or A['t']:
 
-        name = arguments['<contract_name>']
-        func = arguments['<function>']
-        args = [_f(x) for x in arguments['<args>']]
+        x = kista.load_wrapped_contract(name)
+        
+        if func not in x.was:
+            print("func not found")
+            raise exit(2)
 
-        x = w3.eth.contract(address=kista.load_contractAddress(name),
-                            abi=kista.load_abi(name))
-        x = kista.WrapContract(x)
+        f = x.getattr(func)
+
+        if value:
+            result = f(*args(), value=w3.toWei(value, unit))
+        else:
+            result = f(*args())
+            pass
+    
+        if vbose:
+            println(result, _json)
+            pass
+        
+        pass
+
+    elif A['call'] or A['c']:
+
+        x = kista.load_wrapped_contract(name)
     
         if func not in x.ras:
             print("func not found")
             raise exit(2)
 
-        result = x.getattr(func)(*args)
+        result = x.getattr(func)(*args())
 
-        import json
-        
-        if not quiet: print(json.dumps(result))
+        if not quiet:
+            println(result, _json)
+            pass
         pass
     
-    elif arguments['transact'] or arguments['t']:
+    elif A['address'] or A['a']:
 
-        name = arguments['<contract_name>']
-        func = arguments['<function>']
-        args = [_f(x) for x in arguments['<args>']]
+        new_address = A['<new_address>']
 
-        x = w3.eth.contract(address=kista.load_contractAddress(name),
-                            abi=kista.load_abi(name))
-        x = kista.WrapContract(x)
-    
-        if func not in x.was:
-            print("func not found")
-            raise exit(2)
+        if new_address:
+            save_contractAddress(name, new_address)
+            raise exit(0)
 
-        result = x.getattr(func)(*args)
-
-        if arguments['-v']: print(result)
-        pass
-
-    elif arguments['pay'] or arguments['p']:
-
-        wei  = arguments['<wei>']
-        name = arguments['<contract_name>']
-        func = arguments['<function>']
-        args = [_f(x) for x in arguments['<args>']]
-
-        x = w3.eth.contract(address=kista.load_contractAddress(name),
-                            abi=kista.load_abi(name))
-        x = kista.WrapContract(x)
-
-        if func not in x.was:
-            print("func not found")
-            raise exit(2)
-
-        unit = 'wei'
-        #result = x.getattr(func)(*args, value=int(wei))
-        #result = x.getattr(func)(*args, value=web3.toWei(wei, 'gwei'))
-        #print(repr(w3.toWei(wei, unit)))
-        result = x.getattr(func)(*args, value=w3.toWei(wei, unit))
-
-        if arguments['-v']: print(result)
+        address = load_contractAddress(name)
+        if not quiet:
+            println(address, _json)
+            pass
         pass
 
     else:
-        print("dunno what to do", arguments)
+        print("dunno what to do", A)
         pass

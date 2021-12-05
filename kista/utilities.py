@@ -1,6 +1,6 @@
 import os, sys, json, time
 
-version = '1.8.8'
+version = '1.8.10'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -47,7 +47,7 @@ def add_onion(w3):
     #acct = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
     w3.middleware_onion.add(construct_sign_and_send_raw_middleware(acct))
     #w3.eth.default_account = acct.address
-    pass
+    return w3
 
 def wait_for_tx(tx_hash):
     return w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -83,6 +83,21 @@ def load_contractAddress(name):
 def save_contractAddress(name, contractAddress):
     return           open(f'out/{name}.cta','w').write(contractAddress)
 
+def cta(name):
+    return load_contractAddress(name)
+
+def save_cta(name, contractAddress):
+    return save_contractAddress(name, contractAddress)
+
+def link_contract(old_name, new_name):
+    ret = os.system(f"(cd out; ln -s {old_name}.abi {new_name}.abi")
+    if ret != 0:
+        raise Exception("ABI ERR")
+    ret = os.system(f"(cd out; ln -s {old_name}.bin {new_name}.bin")
+    if ret != 0:
+        raise Exception("BIN ERR")
+    pass
+
 def load_contract(name, address=None):
     if address is None:
         address = load_contractAddress(name)
@@ -91,21 +106,23 @@ def load_contract(name, address=None):
     contract   = w3.eth.contract(abi=abi, address=address)
     return contract
 
-def load_wrapped_contract(name, address=None):
-    contract = load_contract(name, address)
-    return  WrapContract(contract)
+def load_wrapped_contract(*a, **kw):
+    return WrapContract(load_contract(*a, **kw))
 
-def deploy_contract(name, *args):
+def raw_deploy_contract(contract, name, *args, **kw):
+    tx_hash    = contract.constructor(*args).transact(kw)
+    tx_receipt = wait_for_tx(tx_hash)
+    contractAddress = tx_receipt.contractAddress
+    save_contractAddress(name, contractAddress)
+    return contractAddress
+    
+def deploy_contract(name, *args, **kw):
     abi        = load_abi(name)
     bytecode   = load_bytecode(name)
     contract   = w3.eth.contract(abi=abi, bytecode=bytecode)
     while 1:
         try:
-            tx_hash    = contract.constructor(*args).transact()
-            tx_receipt = wait_for_tx(tx_hash)
-            contractAddress = tx_receipt.contractAddress
-            save_contractAddress(name, contractAddress)
-            return contractAddress
+            return raw_deploy_contract(contract, name, *args, **kw)
         except ValueError as e:
             if e.args[0]['code'] != -32010:
                 raise
@@ -114,7 +131,7 @@ def deploy_contract(name, *args):
             continue
         pass
     return
-    
+'''    
 def old_deploy_contractAddress(name, *args):
     abi        = load_abi(name)
     bytecode   = load_bytecode(name)
@@ -143,7 +160,7 @@ def deploy_contractAddress(name, *args, **kw):
     contractAddress = tx_receipt.contractAddress
     save_contractAddress(name, contractAddress)
     return contractAddress
-
+'''
 def get_default_address():
     return w3.eth.default_account
 
@@ -161,10 +178,15 @@ class WrapMixin:
  
 def get_func(contract, funcname):
     return contract.functions.__dict__[funcname]
-
+'''
 def old_wcall(contract, funcname, *args, _from=None, **kw):
     if _from: kw['from'] = _from
     func = get_func(contract, funcname)
+    tx_hash = func(*args).transact(kw)
+    tx_receipt = wait_for_tx(tx_hash)
+    return tx_receipt
+'''
+def raw_wcall(func, *args, **kw):
     tx_hash = func(*args).transact(kw)
     tx_receipt = wait_for_tx(tx_hash)
     return tx_receipt
@@ -174,8 +196,7 @@ def wcall(contract, funcname, *args, _from=None, **kw):
     func = get_func(contract, funcname)
     while 1:
         try:
-            tx_hash = func(*args).transact(kw)
-            return wait_for_tx(tx_hash)
+            return raw_wcall(func, *args, **kw)
         except ValueError as e:
             if e.args[0]['code'] != -32010:
                 raise
@@ -184,7 +205,7 @@ def wcall(contract, funcname, *args, _from=None, **kw):
             continue
         pass
     return
-
+'''
 def new_wcall(contract, funcname, *args, _from=None, **kw):
     if private is None:
         return old_wcall(contract, funcname, *args, _from, **kw)
@@ -204,10 +225,9 @@ def new_wcall(contract, funcname, *args, _from=None, **kw):
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     tx_receipt = wait_for_tx(tx_hash)
     return tx_receipt
-
+'''
 def rcall(contract, funcname, *args, **kw):
-    func = get_func(contract, funcname)
-    return func(*args).call(kw)
+    return get_func(contract, funcname)(*args).call(kw)
 
 class WrapContract(WrapMixin):
 
@@ -256,16 +276,18 @@ class WrapContract(WrapMixin):
 
 class WrapAccount(WrapMixin):
 
-    def transfer(_, address, amount):
+    #def transfer(_, address, amount):
+    def transfer(_, **kw): # to, value
         try:
             da = get_default_address()
             set_default_address(_.address)
-            tx_hash = w3.eth.send_transaction({
-                'to': address,
-                'value': w3.toWei(amount, 'ether'),
-                #'gas': 2000000,
-                #'gasPrice': w3.toWei('50', 'gwei')
-            })
+            tx_hash = w3.eth.send_transaction(kw)
+            #tx_hash = w3.eth.send_transaction({
+            #    'to': address,
+            #    'value': w3.toWei(amount, 'ether'),
+            #    #'gas': 2000000,
+            #    #'gasPrice': w3.toWei('50', 'gwei')
+            #})
             tx_receipt = wait_for_tx(tx_hash)
             return tx_receipt['transactionHash'].hex()
         finally:
