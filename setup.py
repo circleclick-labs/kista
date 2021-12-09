@@ -10,8 +10,7 @@ setuptools.setup(name='kista', version=kista.__version__,
                  packages=['kista'],
                  entry_points=dict(console_scripts=[f'kista=kista.cli:main']),
                  scripts=(lambda d:[d+x for x in os.listdir(d)])('scripts/'),
-                 install_requires=[x.strip() for x in
-                                   open("requirements.txt").readlines()],
+                 install_requires=['docopt','web3==5.24','eth_account'],
                  zip_safe=True,
                  classifiers=[
                      "Programming Language :: Python :: 3",

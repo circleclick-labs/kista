@@ -1,6 +1,6 @@
 import os, sys, json, time
 
-__version__ = '2.0.2'
+__version__ = '2.0.4'
 
 w3, private, public = None, None, None
 
