@@ -5,10 +5,10 @@ Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
   kista ( b | balance  )  [ -q ] [ -j | +j ] <address>
-  kista ( s | save     )  [ -q ] [ -j | +j ]               <contract> [--as=<x>]  <new_address>
+  kista ( s | save     )  [ -q ] [ -j | +j ]               <contract> [--as=<x>] <address>
   kista ( d | deploy   )  [ -q ] [ -j | +j ] [--v=<value>] <contract> [--as=<x>] [<args>...]
-  kista ( t | transact )  [ -v ] [ -j | +j ] [--v=<value>] <contract>   <function>  [<args>...]
-  kista ( c | call     )  [ -q ] [ -j | +j ]               <contract>   <function>  [<args>...]
+  kista ( t | transact )  [ -v ] [ -j | +j ] [--v=<value>] <contract> <function> [<args>...]
+  kista ( c | call     )  [ -q ] [ -j | +j ]               <contract> <function> [<args>...]
   kista ( a | address  )  [ -q ] [ -j | +j ]               <contract>
   kista -h | --help
   kista --version
@@ -30,7 +30,7 @@ def _f(x):
     if x == 'null':
         return None
     if x.startswith('@@'):
-        return open(f"out/{x[2:]}.cta").read().strip()
+        return _f(open(f"out/{x[2:]}.cta").read().strip())
     if x.startswith('@'):
         return _f(open(       x[1:]      ).read().strip())
     if x.startswith('~'):
@@ -45,19 +45,21 @@ def _f(x):
     except: pass
     return x
 
-def println(result, _json):
-    if _json:
+def println(result, _json, quiet=False):
+    if quiet:
+        # do nothing
+        pass
+    elif _json:
         print(json.dumps(result))
     else:
         print(result)
         pass
-    pass
+    return
 
 def main():
     import os, sys, eth_account, kista, docopt, json
-
-    A = docopt.docopt(__doc__, version=kista.version)
-
+    from functools import partial
+    A = docopt.docopt(__doc__, version=kista.__version__)
     nname = A['--as']
     vbose = A['-v']
     quiet = A['-q']
@@ -65,96 +67,33 @@ def main():
     name  = A['<contract>']
     func  = A['<function>']
     value = A['--v'] or 0
-    unit  = 'wei'
-
-    w3 = kista.add_onion(kista.w3_connect(None))
-    
+    unit  =   'wei'
+    w3 = kista.w3_connect(None, onion=1)
     if not w3.isConnected():
         print("no connection")
         raise exit(1)
-
-    args = lambda: [_f(x) for x in A['<args>']]
-
-    if A['deploy'] or A['d']:
-
-        if nname:
-            kista.link_contract(name, nname)
-            name = nname
-            pass
-
-        r = kista.deploy_contract(name, *args(), value=w3.toWei(value, unit))
-        
-        if not quiet:
-            println(r, _json)
-            pass
+    if nname:
+        kista.link_contract(name, nname)
+        name = nname
         pass
-        
-    elif A['save'] or A['s']:
-
-        if nname:
-            kista.link_contract(name, nname)
-            name = nname
-            pass
-
-        new_address = A['<new_address>']
-
-        if new_address:
-            kista.save_contractAddress(name, new_address)
-            raise exit(0)
-
-        pass
-        
+    if   A['deploy'] or A['d']:
+        println(partial(kista.deploy_contract, name)(
+            *[_f(x) for x in A['<args>']],
+            value=w3.toWei(value, unit)),
+                _json, not vbose)
     elif A['transact'] or A['t']:
-
-        x = kista.load_wrapped_contract(name)
-        
-        if func not in x.was:
-            print("func not found")
-            raise exit(2)
-
-        r = x.getattr(func)(*args(), value=w3.toWei(value, unit))
-
-        if vbose:
-            println(r, _json)
-            pass
-        
-        pass
-
+        println(kista.wrap_contract(name).getattr(func)(
+            *[_f(x) for x in A['<args>']],
+            value=w3.toWei(value, unit)),
+                _json, not vbose)
     elif A['call'] or A['c']:
-
-        x = kista.load_wrapped_contract(name)
-    
-        if func not in x.ras:
-            print("func not found")
-            raise exit(2)
-
-        result = x.getattr(func)(*args())
-
-        if not quiet:
-            println(result, _json)
-            pass
-        pass
-    
-    elif A['balance'] or A['b']:
-
-        bal = w3.eth.get_balance(A['<address>'])
-        
-        sys.stdout.write(str(bal))
-        
-        if not quiet:
-            sys.stdout.write('\n')
-            pass
-
-        pass
-    
-    elif A['address'] or A['a']:
-
-        address = kista.load_contractAddress(name)
-        if not quiet:
-            println(address, _json)
-            pass
-        pass
-
+        println(kista.wrap_contract(name).getattr(func)(
+            *[_f(x) for x in A['<args>']],
+            value=w3.toWei(value, unit)),
+                _json, quiet)
+    elif    A['save'] or A['s']: kista.save_cta(name, A['<address>'])
+    elif A['address'] or A['a']: println(kista.cta(name), _json, quiet)
+    elif A['balance'] or A['b']: print(kista.balance(A['<address>']))
     else:
         print("dunno what to do", A)
-        pass
+        exit(1)

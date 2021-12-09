@@ -1,6 +1,5 @@
 import os, kista, setuptools
-setuptools.setup(name='kista',
-                 version=kista.version,
+setuptools.setup(name='kista', version=kista.__version__,
                  description='miscellaneous stuff, old norse for bag',
                  long_description=open(f"{__file__[:-8]}README.md").read(),
                  long_description_content_type='text/markdown',
