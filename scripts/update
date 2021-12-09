@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+import sys, kista
+sys.argv.insert(1, sys.argv[0].split('/')[-1])
+kista.cli.main()

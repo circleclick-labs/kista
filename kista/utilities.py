@@ -1,6 +1,6 @@
 import os, sys, json, time
 
-version = '1.8.10'
+version = '1.8.12'
 
 w3, private, public = None, None, None
 gasfactor = None
@@ -88,14 +88,28 @@ def cta(name):
 
 def save_cta(name, contractAddress):
     return save_contractAddress(name, contractAddress)
-
+'''
 def link_contract(old_name, new_name):
-    ret = os.system(f"(cd out; ln -s {old_name}.abi {new_name}.abi")
+    print("LINK", repr((old_name, new_name)))
+    ret = os.system(f"ln -s ./{old_name}.abi out/{new_name}.abi")
+    #ret = os.system(f"(cd out; ln -s {old_name}.abi {new_name}.abi")
     if ret != 0:
         raise Exception("ABI ERR")
-    ret = os.system(f"(cd out; ln -s {old_name}.bin {new_name}.bin")
+    ret = os.system(f"ln -s ./{old_name}.bin out/{new_name}.bin")
+    #ret = os.system(f"(cd out; ln -s {old_name}.bin {new_name}.bin")
     if ret != 0:
         raise Exception("BIN ERR")
+    pass
+'''
+def _link_contract(old_name, new_name, ext, msg):
+    if os.system(f"ln -s ./{old_name}.{ext} out/{new_name}.{ext}") > 0:
+        raise Exception(msg)
+    return
+
+def link_contract(old_name, new_name):
+    #print("LINK", repr((old_name, new_name)))
+    _link_contract(old_name, new_name, "abi", "ABI ERR")
+    _link_contract(old_name, new_name, "bin", "BIN ERR")
     pass
 
 def load_contract(name, address=None):

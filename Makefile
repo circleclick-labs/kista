@@ -7,9 +7,20 @@ KISTA=python3 -um kista
 #	python3 xx.py
 all:
 	$(SOLC) contracts/*.sol
-	scripts/deploy    Test2 hello\ again
-	scripts/kt        Test2 dontPayMe 199
+	scripts/save      erc20 --as WETH9 ${WETH9}
+	scripts/save      erc20 --as USDC  ${USDC}
+	scripts/save      erc20 --as DAI   ${DAI}
+	scripts/address   WETH9
+	scripts/address   USDC
+	scripts/address   DAI
+	scripts/deploy    erc20 --as token1 token1 TOK1 18 1000000000
+	scripts/call      token1 balanceOf ${PUBLIC}
+	scripts/call      WETH9  balanceOf ${PUBLIC}
+	scripts/call      USDC   balanceOf ${PUBLIC}
+	scripts/call      DAI    balanceOf ${PUBLIC}
+	scripts/deploy    Test2 "hello again"
 	scripts/kt --v 99 Test2 payMe 99
+	scripts/kt        Test2 dontPayMe 199
 	scripts/call      Test2 vals
 #	python3 xx.py
 qqqqqq:

@@ -4,19 +4,21 @@ High level python EVM interface
 Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
-  kista ( d | deploy   )  [ -q ] [ -j ] [ --v <value> [<unit>]] <contract_name> -as <name> [<args>...]
-  kista ( t | transact )  [ -v ] [ -j ] [ --v <value> [<unit>]] <contract_name> <function> [<args>...]
-  kista ( c | call     )  [ -q ] [ -j ]                         <contract_name> <function> [<args>...]
-  kista ( a | address  )  [ -q ] [ -j ]                         <contract_name> [ <new_address> ]
+  kista ( b | balance  )  [ -q ] [ -j | +j ] <address>
+  kista ( s | save     )  [ -q ] [ -j | +j ] <contract>  --as=<x>       <new_address>
+  kista ( d | deploy   )  [ -q ] [ -j | +j ] [--v=<value>] <contract> [--as=<x>] [<args>...]
+  kista ( t | transact )  [ -v ] [ -j | +j ] [--v=<value>] <contract>   <function>  [<args>...]
+  kista ( c | call     )  [ -q ] [ -j | +j ]               <contract>   <function>  [<args>...]
+  kista ( a | address  )  [ -q ] [ -j | +j ]               <contract>
   kista -h | --help
   kista --version
 
 Options:
-  <wei>         amount to send in wei.
-  <unit>        units to send (default: wei)
   -h --help     Show this screen.
   -q            quiet mode
   -v            verbose mode
+  +j            JSON on
+  -j            JSON off
   --version     Show version.
 """
 
@@ -52,19 +54,18 @@ def println(result, _json):
     pass
 
 def main():
-    import os, eth_account, kista, docopt, json, functools
+    import os, sys, eth_account, kista, docopt, json
 
     A = docopt.docopt(__doc__, version=kista.version)
 
-    nname = A['<name>']
+    nname = A['--as']
     vbose = A['-v']
     quiet = A['-q']
-    _json = A['-j']
-    name  = A['<contract_name>']
-    value = A['<value>']
-    unit  = A['<unit>'] or 'wei'
-    wei   = A['<wei>']
+    _json = bool(A['+j'])
+    name  = A['<contract>']
     func  = A['<function>']
+    value = A['--v'] or 0
+    unit  = 'wei'
 
     w3 = kista.add_onion(kista.w3_connect(None))
     
@@ -78,22 +79,29 @@ def main():
 
         if nname:
             kista.link_contract(name, nname)
-            nname = name
+            name = nname
             pass
 
-        f = functools.partial(kista.deploy_contract(name))
-
-        if value:
-            result = f(*args(), value=w3.toWei(value, unit))
-            #result = kista.deploy_contract(name, *args(), value=w3.toWei(value, unit))
-        else:
-            result = f(*args())
-            #result = kista.deploy_contract(name, *args())
-            pass
+        r = kista.deploy_contract(name, *args(), value=w3.toWei(value, unit))
         
         if not quiet:
-            println(result, _json)
+            println(r, _json)
             pass
+        pass
+        
+    elif A['save'] or A['s']:
+
+        if nname:
+            kista.link_contract(name, nname)
+            name = nname
+            pass
+
+        new_address = A['<new_address>']
+
+        if new_address:
+            kista.save_contractAddress(name, new_address)
+            raise exit(0)
+
         pass
         
     elif A['transact'] or A['t']:
@@ -104,16 +112,10 @@ def main():
             print("func not found")
             raise exit(2)
 
-        f = x.getattr(func)
+        r = x.getattr(func)(*args(), value=w3.toWei(value, unit))
 
-        if value:
-            result = f(*args(), value=w3.toWei(value, unit))
-        else:
-            result = f(*args())
-            pass
-    
         if vbose:
-            println(result, _json)
+            println(r, _json)
             pass
         
         pass
@@ -133,15 +135,21 @@ def main():
             pass
         pass
     
+    elif A['balance'] or A['b']:
+
+        bal = w3.eth.get_balance(A['<address>'])
+        
+        sys.stdout.write(str(bal))
+        
+        if not quiet:
+            sys.stdout.write('\n')
+            pass
+
+        pass
+    
     elif A['address'] or A['a']:
 
-        new_address = A['<new_address>']
-
-        if new_address:
-            save_contractAddress(name, new_address)
-            raise exit(0)
-
-        address = load_contractAddress(name)
+        address = kista.load_contractAddress(name)
         if not quiet:
             println(address, _json)
             pass
