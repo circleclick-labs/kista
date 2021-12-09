@@ -5,7 +5,7 @@ Old Norse for 'bag' (since it's a bag of tricks)
 
 Usage:
   kista ( b | balance  )  [ -q ] [ -j | +j ] <address>
-  kista ( s | save     )  [ -q ] [ -j | +j ] <contract>  --as=<x>       <new_address>
+  kista ( s | save     )  [ -q ] [ -j | +j ]               <contract> [--as=<x>]  <new_address>
   kista ( d | deploy   )  [ -q ] [ -j | +j ] [--v=<value>] <contract> [--as=<x>] [<args>...]
   kista ( t | transact )  [ -v ] [ -j | +j ] [--v=<value>] <contract>   <function>  [<args>...]
   kista ( c | call     )  [ -q ] [ -j | +j ]               <contract>   <function>  [<args>...]

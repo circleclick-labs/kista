@@ -2,14 +2,15 @@ WETH9=0xd0A1E359811322d97991E03f863a0C30C2cF029C
 USDC=0xe22da380ee6B445bb8273C81944ADEB6E8450422
 DAI=0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa
 SOLC=solc -oout --abi --bin --overwrite --allow-paths=.
-KISTA=python3 -um kista
-#eall:
-#	python3 xx.py
+call: clean all
 all:
+	rm -fr out
 	$(SOLC) contracts/*.sol
 	scripts/save      erc20 --as WETH9 ${WETH9}
 	scripts/save      erc20 --as USDC  ${USDC}
 	scripts/save      erc20 --as DAI   ${DAI}
+	scripts/save     IWETH9            ${WETH9}
+	scripts/address  IWETH9
 	scripts/address   WETH9
 	scripts/address   USDC
 	scripts/address   DAI
